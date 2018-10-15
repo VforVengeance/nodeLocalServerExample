@@ -4,6 +4,12 @@ var app = exp();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+var history = {
+        draw: 0,
+        win: 0, 
+        lose: 0,
+        counter: 0
+    }
 var counter = 0;
 var tokens = ["abc", "def", "ghi"]; 
 var posts = [
@@ -147,7 +153,9 @@ app.get('/users', function(req, res){
     if(((req.query.name)||(req.query.surname))||((req.query.name)&&(req.query.surname))){
         singleUser = [];
         for (var i = 0; i < users.length; i++) {
-            if (((users[i].name == req.query.name)||(users[i].surname == req.query.surname))||((users[i].name == req.query.name)&&(users[i].surname == req.query.surname))){
+            if (
+                ((users[i].name == req.query.name)||(users[i].surname == req.query.surname))||
+                ((users[i].name == req.query.name)&&(users[i].surname == req.query.surname))){
                 singleUser.push(users[i]);  
             }
         }
@@ -191,4 +199,99 @@ app.delete('/users/:index', function(req, res) {
 })
 
 
-app.listen(3003);
+//CALCOLARE NUMERO RANDOM
+function getRandom(){
+    if((Math.random()>= 0) && (Math.random()<= 0.20)){
+        random = "Paper";
+        return random;
+    }
+    else
+        if((Math.random()> 0.20) && (Math.random()<= 0.40)){
+            random = "Scissor";
+            return random;
+        }
+        else
+            if((Math.random()> 0.40) && (Math.random()<= 0.60)){
+                random = "Rock";
+                return random;
+            }
+            else
+                if((Math.random()> 0.60) && (Math.random()<= 0.80)){
+                    random = "Lizard";
+                    return random;
+                }
+                else{
+                    random = "Spock"
+                    return random;
+                }
+
+}
+
+//GIOCO DI CARTA FORBICE SASSO LIZARD SPOCK
+app.get('/games/paperScissorRock', function(req, res){
+    var computerChoice = getRandom();
+    if(!(
+        (req.query.myChoice === "Paper")||
+        (req.query.myChoice === "Scissor")||
+        (req.query.myChoice === "Rock")||
+        (req.query.myChoice === "Lizard")||
+        (req.query.myChoice === "Spock"))){
+            res.status(400).json({message: "A che cazzo di gioco giochi???"})
+        }
+    else
+        if(req.query.myChoice === computerChoice){
+            history.draw++;
+            history.counter++;
+            res.json({computerChoice: computerChoice, result: "Draw", history: history});
+        }
+        else
+            if(
+                (req.query.myChoice === "Paper")&&(computerChoice === "Scissor")||
+                (req.query.myChoice === "Scissor")&&(computerChoice === "Rock")||
+                (req.query.myChoice === "Rock")&&(computerChoice === "Paper")||
+                (req.query.myChoice === "Lizard")&&(computerChoice === "Rock")||
+                (req.query.myChoice === "Spock")&&(computerChoice === "Lizard")||
+                (req.query.myChoice === "Scissor")&&(computerChoice === "Spock")||
+                (req.query.myChoice === "Lizard")&&(computerChoice === "Scissor")||
+                (req.query.myChoice === "Spock")&&(computerChoice === "Paper")||
+                (req.query.myChoice === "Rock")&&(computerChoice === "Spock")||
+                (req.query.myChoice === "Paper")&&(computerChoice === "Lizard")){
+                history.lose++;
+                history.counter++;
+                res.json({computerChoice: computerChoice, result: "Lose", history: history});
+            }
+            else
+            {
+                history.win++;
+                history.counter++;
+                res.json({computerChoice: computerChoice, result: "Win", history: history});
+            }
+})
+
+
+var weather = require('npm-openweathermap');
+// api_key is required. You can get one at http://www.openweathermap.com/
+weather.api_key = '107b4de919442ede3852c72591ae798f';
+// OPTIONAL: you can set return temperature unit.
+// 'k' for Kelvin
+// 'c' for Celsius
+// 'f' for Fahrenheit
+weather.temp = 'c';
+
+app.get("/cities/:cityName", function(request, response){
+    weather.get_weather_custom('city', request.params.cityName, 'forecast').then(function(res){
+        response.json(res);
+    },function(error){
+        console.log(error)
+    })
+})
+
+app.get("/zips/:zipCode", function(request, response){
+    weather.get_weather_custom('zip', request.params.zipCode, 'weather').then(function(res){
+        response.json(res);
+    },function(error){
+        console.log(error)
+    })
+})
+
+app.listen(3003); 
