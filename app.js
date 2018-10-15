@@ -271,7 +271,7 @@ app.get('/games/paperScissorRock', function(req, res){
 
 var weather = require('npm-openweathermap');
 // api_key is required. You can get one at http://www.openweathermap.com/
-weather.api_key = '107b4de919442ede3852c72591ae798f';
+weather.api_key = 'YOUR-API-KEY';
 // OPTIONAL: you can set return temperature unit.
 // 'k' for Kelvin
 // 'c' for Celsius
